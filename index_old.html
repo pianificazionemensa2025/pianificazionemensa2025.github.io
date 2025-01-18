@@ -270,7 +270,7 @@ CLASSE-24,Venerdi,13:10,18:15
 
   <script>
     const PRANZO_TURNI = ["12:30", "12:50", "13:10", "13:30"];
-    const CENA_TURNI = ["18:20", "19:00"];
+    const CENA_TURNI = ["18:00", "19:00"];
     const FINE_LEZIONE_PRANZO = ["12:25", "13:10"];
     const FINE_LEZIONE_CENA = ["17:25", "18:15"];
 
@@ -354,7 +354,7 @@ function checkPasti(classiOrari, pianificazione) {
 
       if (fineCena === FINE_LEZIONE_CENA[1]) {
         if (
-          pianificazione[giorno].Cena[CENA_TURNI[0]].includes(classe) ||
+          !pianificazione[giorno].Cena[CENA_TURNI[0]].includes(classe) &&
           pianificazione[giorno].Cena[CENA_TURNI[1]].includes(classe)
         ) {
           // Ok
@@ -381,26 +381,24 @@ function checkPasti(classiOrari, pianificazione) {
 
 function bilanciaDueListe(lista1, lista2) {
 
-   // Combina le due liste
-  let unioneListe = [...lista1, ...lista2];
-
-  // Mescola gli elementi in modo casuale usando l'algoritmo Fisher-Yates
-  for (let i = unioneListe.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [unioneListe[i], unioneListe[j]] = [unioneListe[j], unioneListe[i]];
-  }
-
   // Calcola il numero totale di elementi
-  const totaleElementi = unioneListe.length;
+  const totaleElementi = lista1.length + lista2.length;
 
-  // Calcola la lunghezza target per ogni lista
+  // Calcola la lunghezza media target per ogni lista
   const targetLunghezza = Math.floor(totaleElementi / 2);
 
-  // Dividi gli elementi tra le due liste
-  const nuovaLista1 = unioneListe.slice(0, targetLunghezza);
-  const nuovaLista2 = unioneListe.slice(targetLunghezza);
+  if (lista2.length > targetLunghezza){
+	return [lista1,lista2]
+  }
 
-  return [nuovaLista1, nuovaLista2];
+  let len_l1=lista1.length
+  
+  while (len_l1 > targetLunghezza) {
+    lista2.push(lista1.pop());
+    len_l1=len_l1-1
+  }
+
+  return [lista1, lista2];
 }
 
 
