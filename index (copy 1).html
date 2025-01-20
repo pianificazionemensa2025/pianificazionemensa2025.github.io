@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestione Orario Settimanale Mensa Classi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .separator-row td {
+      border-top: 2px solid red;
+    }
+    table {
+      margin-top: 20px;
+    }
+    select {
+      width: 100px;
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <div class="card shadow-sm">
+      <div class="card-header text-center bg-primary text-white">
+        <h1>Gestione Orario Settimanale Mensa Classi</h1>
+      </div>
+	
+      <div class="card-body">
+        <div id="tableContainer" class="table-responsive"></div>
+        <div class="text-center mt-3">
+          <button type="button" class="btn btn-success" onclick="processFile()">Elabora Orari</button>
+        </div>
+        <div class="mt-3 text-center">
+          <a id="downloadLink" class="btn btn-primary" style="display: none;">Scarica Output</a>
+        </div>
+	<div id="cardContainer"></div>
+        <label id="errorLabel"></label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Dati iniziali del file
+    last_orario=localStorage.getItem("orario_lezioni");
+    initialData=last_orario
+    if (initialData == null) {
+    	initialData = `
+CLASSE-1,Lunedi,13:10,18:15
+CLASSE-1,Martedi,12:25,18:15
+CLASSE-1,Mercoledi,12:25,17:25
+CLASSE-1,Giovedi,12:25,18:15
+CLASSE-1,Venerdi,12:25,17:25
+CLASSE-2,Lunedi,13:10,17:25
+CLASSE-2,Martedi,13:10,18:15
+CLASSE-2,Mercoledi,12:25,18:15
+CLASSE-2,Giovedi,13:10,18:15
+CLASSE-2,Venerdi,13:10,17:25
+CLASSE-3,Lunedi,13:10,18:15
+CLASSE-3,Martedi,13:10,18:15
+CLASSE-3,Mercoledi,12:25,18:15
+CLASSE-3,Giovedi,13:10,17:25
+CLASSE-3,Venerdi,13:10,18:15
+CLASSE-4,Lunedi,13:10,17:25
+CLASSE-4,Martedi,12:25,17:25
+CLASSE-4,Mercoledi,12:25,18:15
+CLASSE-4,Giovedi,12:25,17:25
+CLASSE-4,Venerdi,12:25,17:25
+CLASSE-5,Lunedi,12:25,18:15
+CLASSE-5,Martedi,12:25,17:25
+CLASSE-5,Mercoledi,13:10,18:15
+CLASSE-5,Giovedi,13:10,18:15
+CLASSE-5,Venerdi,12:25,17:25
+CLASSE-6,Lunedi,12:25,17:25
+CLASSE-6,Martedi,13:10,17:25
+CLASSE-6,Mercoledi,12:25,17:25
+CLASSE-6,Giovedi,13:10,17:25
+CLASSE-6,Venerdi,12:25,18:15
+CLASSE-7,Lunedi,12:25,18:15
+CLASSE-7,Martedi,12:25,17:25
+CLASSE-7,Mercoledi,12:25,17:25
+CLASSE-7,Giovedi,12:25,17:25
+CLASSE-7,Venerdi,13:10,18:15
+CLASSE-8,Lunedi,12:25,17:25
+CLASSE-8,Martedi,12:25,18:15
+CLASSE-8,Mercoledi,12:25,17:25
+CLASSE-8,Giovedi,13:10,18:15
+CLASSE-8,Venerdi,12:25,18:15
+CLASSE-9,Lunedi,12:25,17:25
+CLASSE-9,Martedi,13:10,18:15
+CLASSE-9,Mercoledi,13:10,17:25
+CLASSE-9,Giovedi,12:25,18:15
+CLASSE-9,Venerdi,13:10,17:25
+CLASSE-10,Lunedi,12:25,17:25
+CLASSE-10,Martedi,12:25,18:15
+CLASSE-10,Mercoledi,12:25,17:25
+CLASSE-10,Giovedi,12:25,18:15
+CLASSE-10,Venerdi,13:10,17:25
+CLASSE-11,Lunedi,13:10,17:25
+CLASSE-11,Martedi,13:10,18:15
+CLASSE-11,Mercoledi,13:10,18:15
+CLASSE-11,Giovedi,13:10,17:25
+CLASSE-11,Venerdi,13:10,18:15
+CLASSE-12,Lunedi,12:25,18:15
+CLASSE-12,Martedi,12:25,17:25
+CLASSE-12,Mercoledi,12:25,18:15
+CLASSE-12,Giovedi,13:10,17:25
+CLASSE-12,Venerdi,13:10,18:15
+CLASSE-13,Lunedi,12:25,17:25
+CLASSE-13,Martedi,12:25,17:25
+CLASSE-13,Mercoledi,12:25,17:25
+CLASSE-13,Giovedi,12:25,18:15
+CLASSE-13,Venerdi,13:10,18:15
+CLASSE-14,Lunedi,13:10,17:25
+CLASSE-14,Martedi,13:10,18:15
+CLASSE-14,Mercoledi,12:25,18:15
+CLASSE-14,Giovedi,13:10,17:25
+CLASSE-14,Venerdi,12:25,17:25
+CLASSE-15,Lunedi,12:25,18:15
+CLASSE-15,Martedi,13:10,18:15
+CLASSE-15,Mercoledi,13:10,18:15
+CLASSE-15,Giovedi,13:10,18:15
+CLASSE-15,Venerdi,13:10,17:25
+CLASSE-16,Lunedi,12:25,18:15
+CLASSE-16,Martedi,12:25,17:25
+CLASSE-16,Mercoledi,13:10,17:25
+CLASSE-16,Giovedi,13:10,17:25
+CLASSE-16,Venerdi,12:25,18:15
+CLASSE-17,Lunedi,13:10,17:25
+CLASSE-17,Martedi,12:25,18:15
+CLASSE-17,Mercoledi,13:10,17:25
+CLASSE-17,Giovedi,13:10,17:25
+CLASSE-17,Venerdi,12:25,18:15
+CLASSE-18,Lunedi,13:10,17:25
+CLASSE-18,Martedi,12:25,17:25
+CLASSE-18,Mercoledi,13:10,18:15
+CLASSE-18,Giovedi,12:25,18:15
+CLASSE-18,Venerdi,12:25,18:15
+CLASSE-19,Lunedi,12:25,17:25
+CLASSE-19,Martedi,12:25,17:25
+CLASSE-19,Mercoledi,12:25,17:25
+CLASSE-19,Giovedi,12:25,18:15
+CLASSE-19,Venerdi,12:25,18:15
+CLASSE-20,Lunedi,12:25,17:25
+CLASSE-20,Martedi,13:10,18:15
+CLASSE-20,Mercoledi,13:10,17:25
+CLASSE-20,Giovedi,13:10,18:15
+CLASSE-20,Venerdi,12:25,17:25
+CLASSE-21,Lunedi,12:25,18:15
+CLASSE-21,Martedi,13:10,17:25
+CLASSE-21,Mercoledi,12:25,18:15
+CLASSE-21,Giovedi,12:25,18:15
+CLASSE-21,Venerdi,13:10,18:15
+CLASSE-22,Lunedi,12:25,18:15
+CLASSE-22,Martedi,13:10,17:25
+CLASSE-22,Mercoledi,13:10,17:25
+CLASSE-22,Giovedi,12:25,18:15
+CLASSE-22,Venerdi,12:25,18:15
+CLASSE-23,Lunedi,12:25,17:25
+CLASSE-23,Martedi,13:10,18:15
+CLASSE-23,Mercoledi,13:10,17:25
+CLASSE-23,Giovedi,13:10,18:15
+CLASSE-23,Venerdi,13:10,18:15
+CLASSE-24,Lunedi,12:25,17:25
+CLASSE-24,Martedi,13:10,17:25
+CLASSE-24,Mercoledi,12:25,17:25
+CLASSE-24,Giovedi,13:10,17:25
+CLASSE-24,Venerdi,13:10,18:15
+`
+    }
+    else{
+    	initialData=atob(initialData)
+    }
+    
+    initialData=initialData.trim();
+
+    // Creazione della tabella iniziale
+    document.addEventListener('DOMContentLoaded', () => {
+      createTable(initialData);
+    });
+
+    function createTable(data) {
+      const rows = data.split('\n');
+      const tableContainer = document.getElementById('tableContainer');
+      tableContainer.innerHTML = ''; // Pulisce il contenitore
+
+      const table = document.createElement('table');
+      table.className = 'table table-striped table-bordered';
+
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      ['Classe', 'Giorno', 'Ora Fine Mattina', 'Ora Fine Pomeriggio'].forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      let previousClasse = null;
+
+      rows.forEach(row => {
+        const [classe, giorno, oraInizio, oraFine] = row.split(',');
+        const tr = document.createElement('tr');
+
+        // Aggiungi separatore rosso tra blocchi di classi
+        if (previousClasse !== null && previousClasse !== classe) {
+          const separatorRow = document.createElement('tr');
+          separatorRow.className = 'separator-row';
+          const td = document.createElement('td');
+          td.colSpan = 4; // Span across all columns
+          separatorRow.appendChild(td);
+          tbody.appendChild(separatorRow);
+        }
+        previousClasse = classe;
+
+        [classe, giorno].forEach(value => {
+          const td = document.createElement('td');
+          td.textContent = value;
+          tr.appendChild(td);
+        });
+
+        // Dropdown per Ora Inizio
+        const tdOraInizio = document.createElement('td');
+        const selectOraInizio = document.createElement('select');
+        ['12:25', '13:10'].forEach(optionValue => {
+          const option = document.createElement('option');
+          option.value = optionValue;
+          option.textContent = optionValue;
+          if (optionValue === oraInizio) option.selected = true;
+          selectOraInizio.appendChild(option);
+        });
+        tdOraInizio.appendChild(selectOraInizio);
+        tr.appendChild(tdOraInizio);
+
+        // Dropdown per Ora Fine
+        const tdOraFine = document.createElement('td');
+        const selectOraFine = document.createElement('select');
+        ['17:25', '18:15'].forEach(optionValue => {
+          const option = document.createElement('option');
+          option.value = optionValue;
+          option.textContent = optionValue;
+          if (optionValue === oraFine) option.selected = true;
+          selectOraFine.appendChild(option);
+        });
+        tdOraFine.appendChild(selectOraFine);
+        tr.appendChild(tdOraFine);
+
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      tableContainer.appendChild(table);
+    }
+
+    function processTable() {
+      const table = document.querySelector('#tableContainer table');
+      if (!table) {
+        alert('Nessuna tabella caricata!');
+        return;
+      }
+
+      const rows = table.querySelectorAll('tbody tr:not(.separator-row)');
+      let text = '';
+
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const classe = cells[0].textContent;
+        const giorno = cells[1].textContent;
+        const oraInizio = cells[2].querySelector('select').value;
+        const oraFine = cells[3].querySelector('select').value;
+        text += `${classe},${giorno},${oraInizio},${oraFine}\n`;
+      });
+
+      console.log(text); // Mostra i dati aggiornati nella console
+      return text
+    }
+  </script>
+
+
+  <script>
+    const PRANZO_TURNI = ["12:30", "12:50", "13:20", "13:40"];
+    const CENA_TURNI = ["18:20", "19:00"];
+    const FINE_LEZIONE_PRANZO = ["12:25", "13:10"];
+    const FINE_LEZIONE_CENA = ["17:25", "18:15"];
+
+    function processFile() {
+      const text = processTable()
+      const classiOrari = parseInputFile(text);
+      const pianificazione = pianificaPasti(classiOrari);
+      const output = generateOutput(pianificazione);
+      localStorage.setItem("orario_lezioni", btoa(text))
+      downloadOutput(output, 'pianificazione_pasti.txt');
+        
+    }
+
+    function parseInputFile(content) {
+      const lines = content.split('\n');
+      const classiOrari = {};
+
+      lines.forEach(l => {
+        var line=l.trim()
+	
+	if (line == "") {
+		return
+	}
+
+        const [classe, giorno, finePranzo, fineCena] = line.split(',').map(e => e.trim());
+
+        if (!classiOrari[giorno]) classiOrari[giorno] = [];
+
+        classiOrari[giorno].push({ classe, finePranzo, fineCena });
+      });
+
+      return classiOrari;
+    }
+
+function checkPasti(classiOrari, pianificazione) {
+  console.log("CHECK PASTI");
+  const errori = [];
+
+  for (const giorno in classiOrari) {
+    const listaClassiDictPerGiorno = classiOrari[giorno];
+
+    listaClassiDictPerGiorno.forEach(classDict => {
+      const { classe, finePranzo, fineCena } = classDict;
+
+      // Controllo per il pranzo
+      if (finePranzo === FINE_LEZIONE_PRANZO[0]) {
+        if (
+          pianificazione[giorno].Pranzo[PRANZO_TURNI[0]].includes(classe) ||
+          pianificazione[giorno].Pranzo[PRANZO_TURNI[1]].includes(classe) ||
+          pianificazione[giorno].Pranzo[PRANZO_TURNI[2]].includes(classe) ||
+          pianificazione[giorno].Pranzo[PRANZO_TURNI[3]].includes(classe)
+        ) {
+          // Ok
+        } else {
+          errori.push(`Errore Pranzo: ${giorno} ${classe} ${finePranzo} ${fineCena}`);
+        }
+      }
+
+      if (finePranzo === FINE_LEZIONE_PRANZO[1]) {
+        if (
+          !pianificazione[giorno].Pranzo[PRANZO_TURNI[0]].includes(classe) &&
+          !pianificazione[giorno].Pranzo[PRANZO_TURNI[1]].includes(classe) &&
+          (pianificazione[giorno].Pranzo[PRANZO_TURNI[2]].includes(classe) ||
+          pianificazione[giorno].Pranzo[PRANZO_TURNI[3]].includes(classe))
+        ) {
+          // Ok
+        } else {
+          errori.push(`Errore Pranzo: ${giorno} ${classe} ${finePranzo} ${fineCena}`);
+        }
+      }
+
+      // Controllo per la cena
+      if (fineCena === FINE_LEZIONE_CENA[0]) {
+        if (
+          pianificazione[giorno].Cena[CENA_TURNI[0]].includes(classe) ||
+          pianificazione[giorno].Cena[CENA_TURNI[1]].includes(classe)
+        ) {
+          // Ok
+        } else {
+          errori.push(`Errore Cena: ${giorno} ${classe} ${finePranzo} ${fineCena}`);
+        }
+      }
+
+      if (fineCena === FINE_LEZIONE_CENA[1]) {
+        if (
+          pianificazione[giorno].Cena[CENA_TURNI[0]].includes(classe) ||
+          pianificazione[giorno].Cena[CENA_TURNI[1]].includes(classe)
+        ) {
+          // Ok
+        } else {
+          errori.push(`Errore Cena: ${giorno} ${classe} ${finePranzo} ${fineCena}`);
+        }
+      }
+    });
+  }
+
+  // Gestione degli errori
+  const errorLabel = document.getElementById("errorLabel");
+  if (errori.length > 0) {
+    console.error(`ERRORI: ${errori}`);
+    errorLabel.style.color = "red";
+    errorLabel.innerHTML = errori.join("<br>");
+  } else {
+    console.log("NESSUN ERRORE!");
+    errorLabel.style.color = "green";
+    errorLabel.innerHTML = "NESSUN ERRORE!";
+  }
+}
+
+function dividiLista(unioneListe) {
+
+  // Mescola gli elementi in modo casuale usando l'algoritmo Fisher-Yates
+  for (let i = unioneListe.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [unioneListe[i], unioneListe[j]] = [unioneListe[j], unioneListe[i]];
+  }
+
+  // Calcola il numero totale di elementi
+  const totaleElementi = unioneListe.length;
+
+  // Calcola la lunghezza target per ogni lista
+  const targetLunghezza = Math.floor(totaleElementi / 2);
+
+  // Dividi gli elementi tra le due liste
+  const nuovaLista1 = unioneListe.slice(0, targetLunghezza);
+  const nuovaLista2 = unioneListe.slice(targetLunghezza);
+
+  return [nuovaLista1, nuovaLista2];
+}
+
+
+function bilanciaDueListe(lista1, lista2) {
+
+   // Combina le due liste
+  let unioneListe = [...lista1, ...lista2];
+
+  // Mescola gli elementi in modo casuale usando l'algoritmo Fisher-Yates
+  for (let i = unioneListe.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [unioneListe[i], unioneListe[j]] = [unioneListe[j], unioneListe[i]];
+  }
+
+  // Calcola il numero totale di elementi
+  const totaleElementi = unioneListe.length;
+
+  // Calcola la lunghezza target per ogni lista
+  const targetLunghezza = Math.floor(totaleElementi / 2);
+
+  // Dividi gli elementi tra le due liste
+  const nuovaLista1 = unioneListe.slice(0, targetLunghezza);
+  const nuovaLista2 = unioneListe.slice(targetLunghezza);
+
+  return [nuovaLista1, nuovaLista2];
+}
+
+
+function bilanciaListe(lista1, lista2, lista3, lista4) {
+  // Combina le prime tre liste
+  const altreListe12 = [...lista1, ...lista2];
+  
+  const altreListe34 = [...lista3, ...lista4];
+  
+  // Calcola il numero totale di elementi
+  const totaleElementi = altreListe12.length + altreListe34.length;
+
+  // Calcola la lunghezza media target per ogni lista
+  const targetLunghezza = Math.floor(totaleElementi / 2);
+  
+  len_altreListe12=altreListe12.length
+  len_altreListe34=altreListe34.length
+  
+  while (len_altreListe34 < targetLunghezza && len_altreListe12 > targetLunghezza){
+  	altreListe34.push(altreListe12.pop())
+  	len_altreListe34=len_altreListe34+1
+  	len_altreListe12=len_altreListe12-1
+  }
+  
+   var [l1_,l2_]=dividiLista(altreListe12)
+   var [l3_,l4_]=dividiLista(altreListe34)
+   
+  return [l1_,l2_,l3_,l4_];
+}
+
+
+function pianificaPasti(classiOrari) {
+      const pianificazione = {};
+
+      for (const giorno in classiOrari) {
+        const classi = classiOrari[giorno];
+        pianificazione[giorno] = { Pranzo: {}, Cena: {} };
+
+        const gruppoPranzoA = classi.filter(c => c.finePranzo === FINE_LEZIONE_PRANZO[0]);
+        const gruppoPranzoB = classi.filter(c => c.finePranzo === FINE_LEZIONE_PRANZO[1]);
+        const gruppoCenaC = classi.filter(c => c.fineCena === FINE_LEZIONE_CENA[0]);
+        const gruppoCenaD = classi.filter(c => c.fineCena === FINE_LEZIONE_CENA[1]);
+
+        PRANZO_TURNI.forEach(turno => pianificazione[giorno].Pranzo[turno] = []);
+        CENA_TURNI.forEach(turno => pianificazione[giorno].Cena[turno] = []);
+
+        gruppoPranzoA.forEach((c, i) => pianificazione[giorno].Pranzo[PRANZO_TURNI[i % 2]].push(c.classe));
+        gruppoPranzoB.forEach(c => pianificazione[giorno].Pranzo[PRANZO_TURNI[3]].push(c.classe));
+
+        gruppoCenaC.forEach(c => pianificazione[giorno].Cena[CENA_TURNI[0]].push(c.classe));
+        gruppoCenaD.forEach(c => pianificazione[giorno].Cena[CENA_TURNI[1]].push(c.classe));
+
+
+	var [l1,l2,l3,l4]=bilanciaListe(pianificazione[giorno].Pranzo[PRANZO_TURNI[0]], pianificazione[giorno].Pranzo[PRANZO_TURNI[1]], pianificazione[giorno].Pranzo[PRANZO_TURNI[2]], pianificazione[giorno].Pranzo[PRANZO_TURNI[3]])
+	
+	pianificazione[giorno].Pranzo[PRANZO_TURNI[0]]=l1
+	pianificazione[giorno].Pranzo[PRANZO_TURNI[1]]=l2
+	pianificazione[giorno].Pranzo[PRANZO_TURNI[2]]=l3
+	pianificazione[giorno].Pranzo[PRANZO_TURNI[3]]=l4
+
+
+	var [l1_,l2_]=bilanciaDueListe(pianificazione[giorno].Cena[CENA_TURNI[0]], pianificazione[giorno].Cena[CENA_TURNI[1]])
+
+	pianificazione[giorno].Cena[CENA_TURNI[0]]=l1_
+	pianificazione[giorno].Cena[CENA_TURNI[1]]=l2_
+
+      }
+
+      checkPasti(classiOrari, pianificazione)
+     
+      return pianificazione;
+    }
+
+    function generateOutput(pianificazione) {
+      let output = '';
+
+      for (const giorno in pianificazione) {
+        output += `${giorno}\n  Pranzo:\n`;
+        for (const turno in pianificazione[giorno].Pranzo) {
+          output += `    ${turno}: ${pianificazione[giorno].Pranzo[turno].join(', ')}\n`;
+        }
+
+        output += `  Cena:\n`;
+        for (const turno in pianificazione[giorno].Cena) {
+          output += `    ${turno}: ${pianificazione[giorno].Cena[turno].join(', ')}\n`;
+        }
+
+        output += '\n';
+      }
+
+      return output;
+    }
+
+ function downloadOutput(content, filename) {
+  // Creazione della card
+  const cardContainer = document.getElementById('cardContainer');
+  cardContainer.innerHTML = ''; // Resetta il contenuto precedente
+
+  const card = document.createElement('div');
+  card.style.border = '1px solid #ccc';
+  card.style.borderRadius = '8px';
+  card.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+  card.style.padding = '16px';
+  card.style.margin = '16px 0';
+  card.style.backgroundColor = '#f9f9f9';
+
+  // Titolo della card
+  const title = document.createElement('h3');
+  title.textContent = 'Risultato Pianificazione Orario Mensa';
+  title.style.marginBottom = '12px';
+  card.appendChild(title);
+
+  // Contenuto formattato
+  const pre = document.createElement('pre');
+  pre.textContent = content;
+  pre.style.overflowX = 'auto';
+  pre.style.whiteSpace = 'pre-wrap';
+  pre.style.wordWrap = 'break-word';
+  card.appendChild(pre);
+
+  // Bottone per il download
+  const downloadButton = document.createElement('a');
+  downloadButton.href = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
+  downloadButton.download = filename;
+  downloadButton.textContent = 'Scarica Output';
+  downloadButton.style.display = 'inline-block';
+  downloadButton.style.marginTop = '12px';
+  downloadButton.style.padding = '8px 16px';
+  downloadButton.style.backgroundColor = '#007BFF';
+  downloadButton.style.color = '#fff';
+  downloadButton.style.textDecoration = 'none';
+  downloadButton.style.borderRadius = '4px';
+  downloadButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+  downloadButton.style.transition = 'background-color 0.3s ease';
+
+  // Effetto hover
+  downloadButton.addEventListener('mouseover', () => {
+    downloadButton.style.backgroundColor = '#0056b3';
+  });
+  downloadButton.addEventListener('mouseout', () => {
+    downloadButton.style.backgroundColor = '#007BFF';
+  });
+
+  card.appendChild(downloadButton);
+
+  // Aggiunta della card al container
+  cardContainer.appendChild(card);
+}
+
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

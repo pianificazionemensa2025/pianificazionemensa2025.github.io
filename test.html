@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scarica File Testo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scarica un file di testo</h1>
+    <p>Clicca sul pulsante qui sotto per scaricare il file di testo.</p>
+    <button id="downloadButton">Scarica File</button>
+
+    <script>
+        document.getElementById('downloadButton').addEventListener('click', () => {
+            // Nome del file e contenuto
+            const filename = 'esempio.txt';
+            const content = 'Questo è il contenuto del file di esempio.';
+
+            // Crea un URL data URI
+            const dataURI = `data:text/plain;charset=utf-8,${encodeURIComponent(content)}`;
+            
+            // Crea un elemento <a>
+            const link = document.createElement('a');
+            link.href = dataURI;
+            link.download = filename;
+
+            // Aggiungi il link al DOM, cliccalo e poi rimuovilo
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
+</body>
+</html>
