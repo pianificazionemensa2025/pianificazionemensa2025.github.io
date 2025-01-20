@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Reader Example</title>
+</head>
+<body>
+    <h1>File Reader and Blob Example</h1>
+    <button id="executeButton">Esegui Codice</button>
+
+    <script>
+        document.getElementById('executeButton').addEventListener('click', function() {
+            var reader = new FileReader();
+            var out = new Blob(["asd"], { type: 'text/plain' });
+
+            reader.onload = function(e) {
+                window.open(reader.result);
+            };
+
+            reader.readAsDataURL(out);
+
+            var fileURL = URL.createObjectURL(out);
+            var a = document.createElement('a');
+            a.href = fileURL;
+            a.target = '_blank';
+            a.download = 'lkn_' + '.txt';
+            document.body.appendChild(a);
+            a.click();
+
+            // Pulizia per rimuovere il link dopo il click
+            document.body.removeChild(a);
+        });
+    </script>
+</body>
+</html>
