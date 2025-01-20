@@ -40,7 +40,10 @@
 
   <script>
     // Dati iniziali del file
-    const initialData = `
+    last_orario=localStorage.getItem("orario_lezioni");
+    initialData=last_orario
+    if (initialData == null) {
+    	initialData = `
 CLASSE-1,Lunedi,13:10,18:15
 CLASSE-1,Martedi,12:25,18:15
 CLASSE-1,Mercoledi,12:25,17:25
@@ -161,7 +164,13 @@ CLASSE-24,Martedi,13:10,17:25
 CLASSE-24,Mercoledi,12:25,17:25
 CLASSE-24,Giovedi,13:10,17:25
 CLASSE-24,Venerdi,13:10,18:15
-`.trim();
+`
+    }
+    else{
+    	initialData=atob(initialData)
+    }
+    
+    initialData=initialData.trim();
 
     // Creazione della tabella iniziale
     document.addEventListener('DOMContentLoaded', () => {
@@ -276,10 +285,12 @@ CLASSE-24,Venerdi,13:10,18:15
 
     function processFile() {
       const text = processTable()
-        const classiOrari = parseInputFile(text);
-        const pianificazione = pianificaPasti(classiOrari);
-        const output = generateOutput(pianificazione);
-        downloadOutput(output, 'pianificazione_pasti.txt');
+      const classiOrari = parseInputFile(text);
+      const pianificazione = pianificaPasti(classiOrari);
+      const output = generateOutput(pianificazione);
+      localStorage.setItem("orario_lezioni", btoa(text))
+      downloadOutput(output, 'pianificazione_pasti.txt');
+        
     }
 
     function parseInputFile(content) {
@@ -515,7 +526,7 @@ function pianificaPasti(classiOrari) {
       return output;
     }
 
-    function downloadOutput(content, filename) {
+ function downloadOutput(content, filename) {
   // Creazione della card
   const cardContainer = document.getElementById('cardContainer');
   cardContainer.innerHTML = ''; // Resetta il contenuto precedente
