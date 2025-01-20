@@ -40,7 +40,7 @@
 
   <script>
     // Dati iniziali del file
-    last_orario=localStorage.getItem("orario_lezioni");
+   last_orario=localStorage.getItem("orario_lezioni");
     initialData=last_orario
     if (initialData == null) {
     	initialData = `
@@ -171,7 +171,6 @@ CLASSE-24,Venerdi,13:10,18:15
     }
     
     initialData=initialData.trim();
-
     // Creazione della tabella iniziale
     document.addEventListener('DOMContentLoaded', () => {
       createTable(initialData);
@@ -278,19 +277,18 @@ CLASSE-24,Venerdi,13:10,18:15
 
 
   <script>
-    const PRANZO_TURNI = ["12:30", "12:50", "13:20", "13:40"];
+    const PRANZO_TURNI = ["12:30", "12:50", "13:10", "13:30"];
     const CENA_TURNI = ["18:20", "19:00"];
     const FINE_LEZIONE_PRANZO = ["12:25", "13:10"];
     const FINE_LEZIONE_CENA = ["17:25", "18:15"];
 
     function processFile() {
-      const text = processTable()
-      const classiOrari = parseInputFile(text);
-      const pianificazione = pianificaPasti(classiOrari);
-      const output = generateOutput(pianificazione);
-      localStorage.setItem("orario_lezioni", btoa(text))
-      downloadOutput(output, 'pianificazione_pasti.txt');
-        
+        const text = processTable()
+        const classiOrari = parseInputFile(text);
+        const pianificazione = pianificaPasti(classiOrari);
+        const output = generateOutput(pianificazione);
+        localStorage.setItem("orario_lezioni", btoa(text))
+        downloadOutput(output, 'pianificazione_pasti.txt');
     }
 
     function parseInputFile(content) {
@@ -342,8 +340,8 @@ function checkPasti(classiOrari, pianificazione) {
         if (
           !pianificazione[giorno].Pranzo[PRANZO_TURNI[0]].includes(classe) &&
           !pianificazione[giorno].Pranzo[PRANZO_TURNI[1]].includes(classe) &&
-          (pianificazione[giorno].Pranzo[PRANZO_TURNI[2]].includes(classe) ||
-          pianificazione[giorno].Pranzo[PRANZO_TURNI[3]].includes(classe))
+          !pianificazione[giorno].Pranzo[PRANZO_TURNI[2]].includes(classe) &&
+          pianificazione[giorno].Pranzo[PRANZO_TURNI[3]].includes(classe)
         ) {
           // Ok
         } else {
@@ -389,27 +387,6 @@ function checkPasti(classiOrari, pianificazione) {
   }
 }
 
-function dividiLista(unioneListe) {
-
-  // Mescola gli elementi in modo casuale usando l'algoritmo Fisher-Yates
-  for (let i = unioneListe.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [unioneListe[i], unioneListe[j]] = [unioneListe[j], unioneListe[i]];
-  }
-
-  // Calcola il numero totale di elementi
-  const totaleElementi = unioneListe.length;
-
-  // Calcola la lunghezza target per ogni lista
-  const targetLunghezza = Math.floor(totaleElementi / 2);
-
-  // Dividi gli elementi tra le due liste
-  const nuovaLista1 = unioneListe.slice(0, targetLunghezza);
-  const nuovaLista2 = unioneListe.slice(targetLunghezza);
-
-  return [nuovaLista1, nuovaLista2];
-}
-
 
 function bilanciaDueListe(lista1, lista2) {
 
@@ -438,33 +415,52 @@ function bilanciaDueListe(lista1, lista2) {
 
 function bilanciaListe(lista1, lista2, lista3, lista4) {
   // Combina le prime tre liste
-  const altreListe12 = [...lista1, ...lista2];
-  
-  const altreListe34 = [...lista3, ...lista4];
-  
+  const altreListe = [...lista1, ...lista2, ...lista3];
+
   // Calcola il numero totale di elementi
-  const totaleElementi = altreListe12.length + altreListe34.length;
+  const totaleElementi = altreListe.length + lista4.length;
 
   // Calcola la lunghezza media target per ogni lista
-  const targetLunghezza = Math.floor(totaleElementi / 2);
+  const targetLunghezza = Math.floor(totaleElementi / 4);
+
+  // Inizializza le liste finali
+  const lista1Finale = [];
+  const lista2Finale = [];
+  const lista3Finale = [];
+  const lista4Finale = [...lista4];
+
+  let count = 0;
+  let len_altreListe=altreListe.length
   
-  len_altreListe12=altreListe12.length
-  len_altreListe34=altreListe34.length
-  
-  while (len_altreListe34 < targetLunghezza && len_altreListe12 > targetLunghezza){
-  	altreListe34.push(altreListe12.pop())
-  	len_altreListe34=len_altreListe34+1
-  	len_altreListe12=len_altreListe12-1
+  while (count < targetLunghezza && len_altreListe > 0) {
+    lista1Finale.push(altreListe.pop());
+    len_altreListe=len_altreListe-1
+    if (len_altreListe <= 0){
+      break
+    }
+    lista2Finale.push(altreListe.pop());
+    len_altreListe=len_altreListe-1
+    if (len_altreListe <= 0){
+      break
+    }
+    lista3Finale.push(altreListe.pop());
+    len_altreListe=len_altreListe-1
+    if (len_altreListe <= 0){
+      break
+    }
+    count++;
   }
-  
-   var [l1_,l2_]=dividiLista(altreListe12)
-   var [l3_,l4_]=dividiLista(altreListe34)
-   
-  return [l1_,l2_,l3_,l4_];
+
+  while (len_altreListe > 0) {
+    lista4Finale.push(altreListe.pop());
+    len_altreListe=len_altreListe-1
+  }
+
+  return [lista1Finale, lista2Finale, lista3Finale, lista4Finale];
 }
 
 
-function pianificaPasti(classiOrari) {
+    function pianificaPasti(classiOrari) {
       const pianificazione = {};
 
       for (const giorno in classiOrari) {
@@ -479,7 +475,7 @@ function pianificaPasti(classiOrari) {
         PRANZO_TURNI.forEach(turno => pianificazione[giorno].Pranzo[turno] = []);
         CENA_TURNI.forEach(turno => pianificazione[giorno].Cena[turno] = []);
 
-        gruppoPranzoA.forEach((c, i) => pianificazione[giorno].Pranzo[PRANZO_TURNI[i % 2]].push(c.classe));
+        gruppoPranzoA.forEach((c, i) => pianificazione[giorno].Pranzo[PRANZO_TURNI[i % 3]].push(c.classe));
         gruppoPranzoB.forEach(c => pianificazione[giorno].Pranzo[PRANZO_TURNI[3]].push(c.classe));
 
         gruppoCenaC.forEach(c => pianificazione[giorno].Cena[CENA_TURNI[0]].push(c.classe));
@@ -526,7 +522,7 @@ function pianificaPasti(classiOrari) {
       return output;
     }
 
- function downloadOutput(content, filename) {
+    function downloadOutput(content, filename) {
   // Creazione della card
   const cardContainer = document.getElementById('cardContainer');
   cardContainer.innerHTML = ''; // Resetta il contenuto precedente
