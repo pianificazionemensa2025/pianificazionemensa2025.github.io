@@ -25,30 +25,6 @@
       </div>
 	
       <div class="card-body">
-      	<form id="dateForm">
-            <div class="row g-3">
-                <div class="col">
-                    <label for="day1" class="form-label">Lunedì</label>
-                    <input type="date" id="day1" class="form-control" required onchange="setNextDays()">
-                </div>
-                <div class="col">
-                    <label for="day2" class="form-label">Martedì</label>
-                    <input type="date" id="day2" class="form-control" required>
-                </div>
-                <div class="col">
-                    <label for="day3" class="form-label">Mercoledì</label>
-                    <input type="date" id="day3" class="form-control" required>
-                </div>
-                <div class="col">
-                    <label for="day4" class="form-label">Giovedì</label>
-                    <input type="date" id="day4" class="form-control" required>
-                </div>
-                <div class="col">
-                    <label for="day5" class="form-label">Venerdì</label>
-                    <input type="date" id="day5" class="form-control" required>
-                </div>
-            </div>                     
-        </form>
         <div id="tableContainer" class="table-responsive"></div>
         <div class="text-center mt-3">
           <button type="button" class="btn btn-success" onclick="processFile()">Elabora Orari</button>
@@ -61,28 +37,6 @@
       </div>
     </div>
   </div>
-  
-  <script>
-        function setNextDays() {
-            const day1 = document.getElementById('day1').value;
-
-            if (day1) {
-                const startDate = new Date(day1);
-
-                for (let i = 1; i <= 4; i++) {
-                    const nextDate = new Date(startDate);
-                    nextDate.setDate(startDate.getDate() + i);
-
-                    const nextInput = document.getElementById(`day${i + 1}`);
-                    if (nextInput) {
-                        nextInput.value = nextDate.toISOString().split('T')[0];
-                    }
-                }
-            }
-        }
-
-    </script>
-
 
   <script>
     // Dati iniziali del file
@@ -554,42 +508,16 @@ function pianificaPasti(classiOrari) {
 
     function generateOutput(pianificazione) {
       let output = '';
-      
-      const dayLabels = ["Lunedi", "Martedi", "Mercoledi", "Giovedi","Venerdi"];
-      let day_dict={"Lunedi":"","Martedi":"","Mercoledi":"","Giovedi":"","Venerdi":""}
-      const days = [
-        document.getElementById('day1').value,
-        document.getElementById('day2').value,
-        document.getElementById('day3').value,
-        document.getElementById('day4').value,
-        document.getElementById('day5').value
-      ];
-
-    // Converte le date nel formato desiderato (DD/MM/YYYY)
-      const formattedDays = days.map((date, index) => {
-        if (date) {
-            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-            const formattedDate = new Date(date).toLocaleDateString('it-IT', options);
-            day_dict[dayLabels[index]]=formattedDate;
-            return `${dayLabels[index]} ${formattedDate}`;
-        } else {
-            return `${dayLabels[index]}: Data non selezionata`;
-        }
-       });
-
-    // Stampa ogni data nella console
-    // console.log("Giorni selezionati:");
-    // formattedDays.forEach(day => console.log(day));
 
       for (const giorno in pianificazione) {
-        output += `${giorno} ${day_dict[giorno]}\n  Pranzo:\n`;
+        output += `${giorno}\n  Pranzo:\n`;
         for (const turno in pianificazione[giorno].Pranzo) {
-          output += `    ${turno} - AULE: ${pianificazione[giorno].Pranzo[turno].map(str => str.replace("CLASSE-", "")).join(', ')}\n`;
+          output += `    ${turno}: ${pianificazione[giorno].Pranzo[turno].join(', ')}\n`;
         }
 
         output += `  Cena:\n`;
         for (const turno in pianificazione[giorno].Cena) {
-          output += `    ${turno} - AULE: ${pianificazione[giorno].Cena[turno].map(str => str.replace("CLASSE-", "")).join(', ')}\n`;
+          output += `    ${turno}: ${pianificazione[giorno].Cena[turno].join(', ')}\n`;
         }
 
         output += '\n';
