@@ -268,7 +268,7 @@ CLASSE-24,Venerdi,13:10,18:15
         // Dropdown per Ora Inizio
         const tdOraInizio = document.createElement('td');
         const selectOraInizio = document.createElement('select');
-        ['11:30','12:25', '13:10'].forEach(optionValue => {
+        ['12:25', '13:10'].forEach(optionValue => {
           const option = document.createElement('option');
           option.value = optionValue;
           option.textContent = optionValue;
@@ -326,7 +326,7 @@ CLASSE-24,Venerdi,13:10,18:15
   <script>
     const PRANZO_TURNI = ["12:30", "12:50", "13:20", "13:40"];
     const CENA_TURNI = ["18:20", "19:00"];
-    const FINE_LEZIONE_PRANZO = ["11:30", "12:25", "13:10"];
+    const FINE_LEZIONE_PRANZO = ["12:25", "13:10"];
     const FINE_LEZIONE_CENA = ["17:25", "18:15"];
 
     function processFile() {
@@ -386,19 +386,6 @@ function checkPasti(classiOrari, pianificazione) {
 
       if (finePranzo === FINE_LEZIONE_PRANZO[1]) {
         if (
-          pianificazione[giorno].Pranzo[PRANZO_TURNI[0]].includes(classe) ||
-          pianificazione[giorno].Pranzo[PRANZO_TURNI[1]].includes(classe) ||
-          pianificazione[giorno].Pranzo[PRANZO_TURNI[2]].includes(classe) ||
-          pianificazione[giorno].Pranzo[PRANZO_TURNI[3]].includes(classe)
-        ) {
-          // Ok
-        } else {
-          errori.push(`Errore Pranzo: ${giorno} ${classe} ${finePranzo} ${fineCena}`);
-        }
-      }
-
-      if (finePranzo === FINE_LEZIONE_PRANZO[2]) {
-        if (
           !pianificazione[giorno].Pranzo[PRANZO_TURNI[0]].includes(classe) &&
           !pianificazione[giorno].Pranzo[PRANZO_TURNI[1]].includes(classe) &&
           (pianificazione[giorno].Pranzo[PRANZO_TURNI[2]].includes(classe) ||
@@ -409,20 +396,6 @@ function checkPasti(classiOrari, pianificazione) {
           errori.push(`Errore Pranzo: ${giorno} ${classe} ${finePranzo} ${fineCena}`);
         }
       }
-
-      if (finePranzo === FINE_LEZIONE_PRANZO[3]) {
-        if (
-          !pianificazione[giorno].Pranzo[PRANZO_TURNI[0]].includes(classe) &&
-          !pianificazione[giorno].Pranzo[PRANZO_TURNI[1]].includes(classe) &&
-          (pianificazione[giorno].Pranzo[PRANZO_TURNI[2]].includes(classe) ||
-          pianificazione[giorno].Pranzo[PRANZO_TURNI[3]].includes(classe))
-        ) {
-          // Ok
-        } else {
-          errori.push(`Errore Pranzo: ${giorno} ${classe} ${finePranzo} ${fineCena}`);
-        }
-      }
-
 
       // Controllo per la cena
       if (fineCena === FINE_LEZIONE_CENA[0]) {
@@ -537,12 +510,49 @@ function bilanciaListe(lista1, lista2, lista3, lista4) {
 }
 
 
-function orarioToMinuti(orario) {
-  const [h, m] = orario.split(':').map(Number);
-  return h * 60 + m;
-}
+function pianificaPasti(classiOrari) {
+      const pianificazione = {};
 
-function generateOutput(pianificazione) {
+      for (const giorno in classiOrari) {
+        const classi = classiOrari[giorno];
+        pianificazione[giorno] = { Pranzo: {}, Cena: {} };
+
+        const gruppoPranzoA = classi.filter(c => c.finePranzo === FINE_LEZIONE_PRANZO[0]);
+        const gruppoPranzoB = classi.filter(c => c.finePranzo === FINE_LEZIONE_PRANZO[1]);
+        const gruppoCenaC = classi.filter(c => c.fineCena === FINE_LEZIONE_CENA[0]);
+        const gruppoCenaD = classi.filter(c => c.fineCena === FINE_LEZIONE_CENA[1]);
+
+        PRANZO_TURNI.forEach(turno => pianificazione[giorno].Pranzo[turno] = []);
+        CENA_TURNI.forEach(turno => pianificazione[giorno].Cena[turno] = []);
+
+        gruppoPranzoA.forEach((c, i) => pianificazione[giorno].Pranzo[PRANZO_TURNI[i % 2]].push(c.classe));
+        gruppoPranzoB.forEach(c => pianificazione[giorno].Pranzo[PRANZO_TURNI[3]].push(c.classe));
+
+        gruppoCenaC.forEach(c => pianificazione[giorno].Cena[CENA_TURNI[0]].push(c.classe));
+        gruppoCenaD.forEach(c => pianificazione[giorno].Cena[CENA_TURNI[1]].push(c.classe));
+
+
+	var [l1,l2,l3,l4]=bilanciaListe(pianificazione[giorno].Pranzo[PRANZO_TURNI[0]], pianificazione[giorno].Pranzo[PRANZO_TURNI[1]], pianificazione[giorno].Pranzo[PRANZO_TURNI[2]], pianificazione[giorno].Pranzo[PRANZO_TURNI[3]])
+	
+	pianificazione[giorno].Pranzo[PRANZO_TURNI[0]]=l1
+	pianificazione[giorno].Pranzo[PRANZO_TURNI[1]]=l2
+	pianificazione[giorno].Pranzo[PRANZO_TURNI[2]]=l3
+	pianificazione[giorno].Pranzo[PRANZO_TURNI[3]]=l4
+
+
+	var [l1_,l2_]=bilanciaDueListe(pianificazione[giorno].Cena[CENA_TURNI[0]], pianificazione[giorno].Cena[CENA_TURNI[1]])
+
+	pianificazione[giorno].Cena[CENA_TURNI[0]]=l1_
+	pianificazione[giorno].Cena[CENA_TURNI[1]]=l2_
+
+      }
+
+      checkPasti(classiOrari, pianificazione)
+     
+      return pianificazione;
+    }
+
+    function generateOutput(pianificazione) {
       let output = '';
       
       const dayLabels = ["Lunedi", "Martedi", "Mercoledi", "Giovedi","Venerdi"];
@@ -587,101 +597,6 @@ function generateOutput(pianificazione) {
 
       return output;
     }
-
-
-function pianificaPasti(classiOrari) {
-  const pianificazione = {};
-  const turniPrecedenti = {};
-  const giorniSettimana = ["Lunedi", "Martedi", "Mercoledi", "Giovedi", "Venerdi"];
-
-  for (let i = 0; i < giorniSettimana.length; i++) {
-    const giorno = giorniSettimana[i];
-    const classi = classiOrari[giorno] || [];
-    pianificazione[giorno] = { Pranzo: {}, Cena: {} };
-
-    PRANZO_TURNI.forEach(turno => pianificazione[giorno].Pranzo[turno] = []);
-    CENA_TURNI.forEach(turno => pianificazione[giorno].Cena[turno] = []);
-
-    const gruppi = {
-      "11:30": [],
-      "12:25": [],
-      "13:10": []
-    };
-    classi.forEach(c => gruppi[c.finePranzo]?.push(c));
-
-    function assegnaTurni(gruppoClassi) {
-      const classiRandom = [...gruppoClassi];
-
-      for (let j = classiRandom.length - 1; j > 0; j--) {
-        const k = Math.floor(Math.random() * (j + 1));
-        [classiRandom[j], classiRandom[k]] = [classiRandom[k], classiRandom[j]];
-      }
-
-      for (let cls of classiRandom) {
-        let assegnato = false;
-        const fineLezioneMinuti = orarioToMinuti(cls.finePranzo);
-        const prevGiorno = giorniSettimana[i - 1];
-        const prevTurno = turniPrecedenti[cls.classe]?.[prevGiorno];
-
-        for (let turno of PRANZO_TURNI) {
-          const turnoMinuti = orarioToMinuti(turno);
-          if (turnoMinuti <= fineLezioneMinuti) continue;
-          if (pianificazione[giorno].Pranzo[turno].length >= 6) continue;
-
-          // Vincolo solo su primo e ultimo turno
-          const evitaRipetizione = (turno === "12:30" || turno === "13:40");
-          if (evitaRipetizione && prevTurno === turno) continue;
-
-          pianificazione[giorno].Pranzo[turno].push(cls.classe);
-          if (!turniPrecedenti[cls.classe]) turniPrecedenti[cls.classe] = {};
-          turniPrecedenti[cls.classe][giorno] = turno;
-          assegnato = true;
-          break;
-        }
-
-        // Fallback: assegna al turno compatibile con meno classi (anche se oltre il limite)
-        if (!assegnato) {
-          const turniCompatibili = PRANZO_TURNI.filter(turno => {
-            const turnoMinuti = orarioToMinuti(turno);
-            return turnoMinuti > fineLezioneMinuti;
-          });
-
-          if (turniCompatibili.length > 0) {
-            turniCompatibili.sort((a, b) =>
-              pianificazione[giorno].Pranzo[a].length - pianificazione[giorno].Pranzo[b].length
-            );
-
-            const migliorTurno = turniCompatibili[0];
-
-            pianificazione[giorno].Pranzo[migliorTurno].push(cls.classe);
-            if (!turniPrecedenti[cls.classe]) turniPrecedenti[cls.classe] = {};
-            turniPrecedenti[cls.classe][giorno] = migliorTurno;
-          }
-        }
-      }
-    }
-
-    assegnaTurni(gruppi["11:30"]);
-    assegnaTurni(gruppi["12:25"]);
-    assegnaTurni(gruppi["13:10"]);
-
-    const gruppoCenaC = classi.filter(c => c.fineCena === FINE_LEZIONE_CENA[0]);
-    const gruppoCenaD = classi.filter(c => c.fineCena === FINE_LEZIONE_CENA[1]);
-
-    gruppoCenaC.forEach(c => pianificazione[giorno].Cena[CENA_TURNI[0]].push(c.classe));
-    gruppoCenaD.forEach(c => pianificazione[giorno].Cena[CENA_TURNI[1]].push(c.classe));
-
-    const [l1_, l2_] = bilanciaDueListe(
-      pianificazione[giorno].Cena[CENA_TURNI[0]],
-      pianificazione[giorno].Cena[CENA_TURNI[1]]
-    );
-    pianificazione[giorno].Cena[CENA_TURNI[0]] = l1_;
-    pianificazione[giorno].Cena[CENA_TURNI[1]] = l2_;
-  }
-
-  checkPasti(classiOrari, pianificazione);
-  return pianificazione;
-}
 
  function downloadOutput(content, filename) {
   // Creazione della card
